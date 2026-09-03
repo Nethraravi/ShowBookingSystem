@@ -7,6 +7,7 @@ import org.company.showbookingapp.booking.BookingRepository;
 import org.company.showbookingapp.booking.BookingSeatRepository;
 import org.company.showbookingapp.booking.BookingStatus;
 import org.company.showbookingapp.exception.ResourceNotFoundException;
+import org.company.showbookingapp.notification.EmailNotificationService;
 import org.company.showbookingapp.payment.gomobi.GoMobiClient;
 import org.company.showbookingapp.payment.gomobi.dto.GoMobiBankResponseDTO;
 import org.company.showbookingapp.payment.gomobi.dto.GoMobiPaymentRequestDTO;
@@ -28,6 +29,7 @@ public class PaymentService {
     private final GoMobiClient goMobiClient;
     private final PaymentRepository paymentRepository;
     private final BookingSeatRepository bookingSeatRepository;
+    private final EmailNotificationService emailNotificationService;
 
     public GoMobiBankResponseDTO getAvailableBanks() {
 
@@ -236,5 +238,13 @@ public class PaymentService {
                 .forEach(bookingSeat -> {
                     bookingSeat.getShowSeat().setStatus(ShowSeatStatus.BOOKED);
                 });
+        System.out.println(">>> Sending payment success email to: "
+                + booking.getUser().getEmail());
+        emailNotificationService.sendPaymentSuccessEmail(
+                booking.getUser().getEmail(),
+                booking.getId(),
+                payment.getTransactionId(),
+                payment.getAmount().toPlainString()
+        );
     }
 }
